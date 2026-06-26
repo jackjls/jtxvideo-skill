@@ -1,8 +1,8 @@
 ---
 name: jtxvideo-skill
 description: >
-  Produce Jiang Tongxue's AI-finance talking-head Douyin videos from recorded口播视频
-  using the approved staged workflow: preprocess, transcribe SRT, wait for confirmation,
+  Produce AI-finance and industry-analysis talking-head videos from recorded口播视频
+  using a staged workflow: preprocess, transcribe SRT, wait for confirmation,
   analyze structure, storyboard, design, HyperFrames render, review, and export 2K 60fps.
   Preserve the source orientation unless the user explicitly asks to change it. Use when
   the user asks to process口播视频, make同款剪辑风格, generate AI金融黑金商务视频, or says

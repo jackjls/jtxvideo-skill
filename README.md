@@ -126,24 +126,39 @@ Skill 强制按以下顺序推进：
 
 ## 安装方式
 
-把 Skill 复制到 Codex 的 skills 目录：
+本仓库按 Agent Skills 通用方式安装，推荐使用 `npx skills add`。
+
+`npx skills` 会根据目标 Agent 自动写入对应目录。全局安装时，通用 Skill 会放在 `~/.agents/skills`，并同步到 Claude Code、Codex 等 Agent 可识别的位置。
+
+### 全局安装到当前 Agent
 
 ```bash
-mkdir -p ~/.codex/skills
-cp -R skills/jtxvideo-skill ~/.codex/skills/
+npx skills add https://github.com/jackjls/jtxvideo-skill --skill jtxvideo-skill -g
 ```
 
-如果已经安装过，可以覆盖同步：
+### 指定安装到 Claude Code
 
 ```bash
-rsync -a --delete skills/jtxvideo-skill/ ~/.codex/skills/jtxvideo-skill/
+npx skills add https://github.com/jackjls/jtxvideo-skill --skill jtxvideo-skill --agent claude-code -g
 ```
 
-安装或更新后，重启 Codex。
+### 安装到所有已支持 Agent
+
+```bash
+npx skills add https://github.com/jackjls/jtxvideo-skill --skill jtxvideo-skill --agent '*' -g
+```
+
+### 查看仓库内可安装的 Skill
+
+```bash
+npx skills add https://github.com/jackjls/jtxvideo-skill --list
+```
+
+安装或更新后，重启对应客户端。
 
 ## 使用方式
 
-在 Codex 中提供口播视频，并明确调用 Skill：
+在 Codex 或 Claude Code 中提供口播视频，并明确调用 Skill：
 
 ```text
 用 $jtxvideo-skill 处理这个口播视频，按预处理、SRT 确认、文案结构、分镜表、设计、HyperFrames 渲染和 2K60 导出的流程走。
