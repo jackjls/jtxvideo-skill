@@ -37,6 +37,10 @@ Never jump straight from source video to a finished edit. Move in this order:
      ffmpeg -i input.mp4 -c:v libx264 -g 30 -keyint_min 30 -r 30 output_keyed.mp4
      ```
    - Save as `workflow/01_preprocessed_keyed.mp4` and copy/use as `assets/talk-main-keyed.mp4`.
+   - Immediately run `ffprobe` and record source orientation:
+     - `width > height` = horizontal workflow
+     - `height > width` = portrait workflow
+   - Save the orientation decision in the project notes / `design.md`. Do not choose layout rules before this decision is made.
 
 3. **Extract audio and transcribe**
    - Extract clean audio, usually `workflow/01_audio_16k.wav`.
@@ -67,6 +71,9 @@ Never jump straight from source video to a finished edit. Move in this order:
 7. **Generate storyboard**
    - Use `templates/storyboard-template.md` as the schema.
    - Include time range,口播内容,文案类型,画面策略,动效元素,音效建议,审核关注点.
+   - Before writing the storyboard, branch by source orientation:
+     - Horizontal: material-first split layouts are allowed for long evidence/chart explanations.
+     - Portrait: the speaker must remain on screen; materials and motion graphics attach as overlays above the speaker.
    - Save as `workflow/06_storyboard_for_review.md`.
    - Ask the user to review.
 
@@ -84,6 +91,9 @@ Never jump straight from source video to a finished edit. Move in this order:
     - Put captions and visual explanations in separate timed overlay layers.
     - Prefer concise dynamic keywords over dense cards when there is no external material to show.
     - Use real source images/charts when they are available and relevant; do not redraw unclear symbolic diagrams.
+    - Apply the orientation-specific layout rules:
+      - Horizontal: may use left-material / right-speaker split scenes when materials need sustained explanation.
+      - Portrait: never switch to a full-screen material scene; the speaker stays visible and materials/dynamic text are overlay layers attached to the speaker shot.
     - Main video must be muted; use a separate `<audio>` track.
 
 11. **最终视觉确认**
@@ -115,12 +125,28 @@ Use these rules before writing the storyboard and again before rendering:
    - Avoid stacking many explanatory lines; if everything is highlighted, nothing is highlighted.
 
 3. **Use source material as the main visual when available**
-   - If a chart/table/image is the evidence, make the material readable and visually dominant.
+   - Horizontal: if a chart/table/image is the evidence, make the material readable and visually dominant.
+   - Portrait: source material can be shown, but only as an overlay on top of the speaker shot unless the user explicitly asks for a full-screen insert.
    - Do not crop important parts of the material.
    - Do not cover the material with duplicate text or redundant labels.
    - Put only the key prompt above or near the material.
 
-4. **Horizontal split layout for long material explanation**
+4. **Decide horizontal vs portrait before layout**
+   - Always inspect `width` and `height` before storyboard/design/code.
+   - Do not reuse horizontal split-screen logic on portrait footage.
+   - Do not reuse portrait overlay logic when a horizontal video needs readable long-form evidence.
+   - Record the decision in `design.md` with the chosen canvas and export target.
+
+5. **Portrait layout rules**
+   - The speaker must remain visible for the entire video.
+   - Materials, charts, screenshots, and keywords are overlay explanations attached to the speaker shot.
+   - Do not create full-screen material takeovers in portrait unless the user explicitly asks.
+   - If a source image is provided for a portrait video, use it briefly as an upper overlay, side overlay, or small evidence strip; do not let it replace the speaker.
+   - Do not cover eyes, mouth, or key facial expression areas.
+   - Prefer top/upper-side overlays for keywords and data; keep bottom reserved for subtitles and Douyin-safe UI.
+   - If a phrase's visual emphasis feels like a distracting popup, remove that emphasis and keep the phrase in the full subtitle only.
+
+6. **Horizontal split layout for long material explanation**
    - For horizontal videos with important material, use a two-panel layout:
      - left: large material panel
      - right: synchronized speaker panel
@@ -128,31 +154,33 @@ Use these rules before writing the storyboard and again before rendering:
    - Leave enough gap between title, panels, and subtitles.
    - The material is the primary visual in these sections; the speaker supports the explanation.
 
-5. **Static blurred background in split scenes**
+7. **Static blurred background in split scenes**
    - When the speaker is shown in a right-side panel, the background behind the panels must not be a live moving copy of the speaker.
    - Use a still frame from the source video as a blurred, darkened background.
    - Only the speaker panel should move.
    - This prevents the viewer from seeing two moving speakers at once.
 
-6. **Animation must match the spoken timing**
+8. **Animation must match the spoken timing**
    - Do not reveal a number or conclusion before the matching subtitle/口播.
    - Tie overlays to the exact SRT segment that says the key phrase.
    - Example: `$40 -> $60` should appear when the speaker says "从40美金涨到60美金", not when earlier context begins.
 
-7. **Text style**
+9. **Text style**
    - Use solid, heavy, high-contrast Chinese typography for key statements.
    - Avoid hollow, striped, folded, decorative, or textured type unless explicitly requested.
    - Use gold only for the most important number or conclusion.
 
-8. **Subtitles stay independent**
+10. **Subtitles stay independent**
    - Subtitle bars must not overlap material panels or speaker panels.
    - In horizontal split scenes, reserve a clear bottom subtitle band below the main panel.
+   - In portrait scenes, subtitles remain the base layer of comprehension; overlays must not compete with the subtitle bar.
    - Subtitle background should be translucent, not fully opaque black.
 
-9. **Render stability**
+11. **Render stability**
    - Use one continuous main video as the base.
    - For picture-in-picture speaker panels, prefer pre-cut speaker clips as root-level media layers controlled by opacity.
    - Avoid dynamically creating nested video elements inside timed HTML scenes.
+   - Prefer local bundled scripts such as `assets/gsap.min.js` over CDN scripts for renders.
    - After rendering, re-mux full original audio and verify that audio duration is close to video duration.
 
 ## Default File Contract
@@ -189,6 +217,7 @@ Use `templates/design-default.md` as the source of truth for:
 - bright speaker/person layer
 - concise dynamic keywords and restrained motion
 - material-first split layout when charts/tables/images are important
+- portrait overlay layout when the source video is vertical
 - no noisy gold line or flashy decoration
 - Douyin-safe subtitles
 
@@ -204,7 +233,9 @@ Before telling the user a render is ready:
 - Confirm audio duration is complete and close to video duration.
 - Generate at least one preview frame or contact sheet.
 - For split scenes, inspect a frame while the section is active and confirm the blurred background is static.
+- For portrait scenes, inspect frames where materials appear and confirm the speaker remains visible.
 - For timed key numbers, inspect one frame before the cue and one frame after the cue.
+- For any user-reported flicker/popup issue, extract several frames around the timestamp from the rendered MP4, not only from HyperFrames snapshots.
 
 ## Export Defaults
 
@@ -256,8 +287,10 @@ ffmpeg -i master_1080p60.mp4 \
 - Do not put subtitles too low where Douyin UI covers them.
 - Do not make subtitle backgrounds fully opaque black.
 - Do not convert horizontal source video to portrait unless the user explicitly asks.
+- Do not convert portrait source video to horizontal unless the user explicitly asks.
 - Do not use dense cards when a short dynamic keyword or real material is enough.
 - Do not show a live moving background speaker behind a picture-in-picture speaker panel.
+- Do not let a portrait video become a full-screen PPT/material video; the speaker must stay visible.
 - Do not reveal key numbers before the matching口播/SRT timing.
 - Do not invent financial facts, stock claims, prices, dates, or performance data.
 - Do not imply investment advice or喊单.
